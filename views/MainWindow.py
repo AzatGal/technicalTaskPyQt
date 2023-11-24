@@ -1,14 +1,15 @@
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont
-from PyQt5.QtWidgets import QMainWindow, QTableView, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QMainWindow, QTableView, QVBoxLayout, QWidget, QLabel, QAbstractItemView
 
-from models.DataModels import MongoDBContext
+from controllers.AccountControllers import UserController
 from views.ChartDialog import ChartDialog
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, _users: MongoDBContext):
+    def __init__(self, _db):
         super().__init__()
-        self.users = _users
+        self.user_controller = UserController(_db)
 
         self.model = QStandardItemModel()
         self.model.setColumnCount(1)
@@ -19,6 +20,7 @@ class MainWindow(QMainWindow):
         font.setPointSize(13)
         self.table.setFont(font)
         self.table.setModel(self.model)
+        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.doubleClicked.connect(self.open_chart_window)
 
         layout = QVBoxLayout()
@@ -27,22 +29,21 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
-        self.accounts = dict()
 
-        for i in self.users.accounts_df['username']:
-            self.add_account(i)
-            self.accounts[i] = self.users.accounts_df.loc[self.users.accounts_df['username'] == i]['id'].values[0]
+        self.add_accounts()
 
-    def add_account(self, account):
-        item_account = QStandardItem(account)
-        self.model.appendRow([item_account])
+    def add_accounts(self):
+        for i in self.user_controller.get_accounts():
+            item_account = QStandardItem(i)
+            self.model.appendRow([item_account])
 
     def open_chart_window(self, index):
         selected_account = self.model.item(index.row(), 0).text()
-        graph_window = ChartDialog(self.users)
+        graph_window = ChartDialog(self.user_controller)
         graph_window.resize(1000, 500)
-        graph_window.show_chart(self.accounts[selected_account], selected_account)
+        if selected_account not in list(self.user_controller.get_accounts().keys()):
+            graph_window.show_chart('-1', 'unexisted account')
+        else:
+            graph_window.show_chart(self.user_controller.get_accounts()[selected_account], selected_account)
         graph_window.exec_()
-
-
 

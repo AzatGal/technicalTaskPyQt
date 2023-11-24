@@ -1,23 +1,10 @@
 import pandas as pd
 from pymongo.mongo_client import MongoClient
-from abc import ABC, abstractmethod
+
+from models.AbstractDB import AbstractDB
 
 
-class DBContex(ABC):
-    @abstractmethod
-    def __init__(self):
-        pass
-
-    @abstractmethod
-    def get_results_of_bet_df(self, account_id):
-        pass
-
-    @abstractmethod
-    def current_balance_df(self, account_id):
-        pass
-
-
-class MongoDBContext(DBContex):
+class MongoDB(AbstractDB):
     def __init__(self):
         self.url = "mongodb+srv://azat:azat@cluster0.kf6oe42.mongodb.net/?retryWrites=true&w=majority"
         # Create a new client and connect to the server
@@ -53,4 +40,5 @@ class MongoDBContext(DBContex):
         df.sort_values('bet_datetime')
         df.loc[:, 'balance'] = df.loc[:, 'balance_first'] - df.loc[:, 'result of bet']
         return df
+
 

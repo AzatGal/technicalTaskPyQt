@@ -1,18 +1,14 @@
 from PyQt5.QtWidgets import QVBoxLayout, QDialog
 
-from controllers.AccountControllers import UserActions
-from models.DataModels import MongoDBContext
-
 
 class ChartDialog(QDialog):
-    def __init__(self, _users: MongoDBContext):
+    def __init__(self, _user_controller):
         super().__init__()
         self.setWindowTitle("Window with chart")
-        self.users = _users
+        self.user_controller = _user_controller
 
     def show_chart(self, account_id, account_name):
-        ua = UserActions(account_id, self.users)
-        canvas = ua.get_plot()
+        canvas = self.user_controller.get_plot(account_id)
         self.setWindowTitle(f"User {account_name} balance chart")
         layout = QVBoxLayout()
         layout.addWidget(canvas)
